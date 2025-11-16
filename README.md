@@ -70,6 +70,10 @@ curl -X POST http://127.0.0.1:8080/plan \
      }'
 ```
 
+### Descriptor Templates (YAML)
+- **Node descriptor template:** `configs/templates/node-descriptor.yaml` (covers `arch` = `amd64`/`arm64`/`riscv64`, CPU/memory tiers, accelerators, network, power, labels, health)
+- **Job descriptor template:** `configs/templates/job-descriptor.yaml` (covers end-to-end DAG, stage resources, format/arch gating, placement and SLOs)
+
 ### Verify Prediction Accuracy
 ```bash
 # After job execution, check verification results
