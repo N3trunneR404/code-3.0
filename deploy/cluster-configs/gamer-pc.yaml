@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: gamer-pc
+servers: 1
+agents: 4
+network: dt-gamer-pc
+subnet: 172.30.16.0/24
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+  k3s:
+    extraArgs:
+      - arg: --cluster-cidr=10.16.0.0/16
+        nodeFilters:
+          - server:*
+      - arg: --service-cidr=10.116.0.0/16
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false

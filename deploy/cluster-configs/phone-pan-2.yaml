@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: phone-pan-2
+servers: 1
+agents: 4
+network: dt-phone-pan-2
+subnet: 172.30.15.0/24
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+  k3s:
+    extraArgs:
+      - arg: --cluster-cidr=10.15.0.0/16
+        nodeFilters:
+          - server:*
+      - arg: --service-cidr=10.115.0.0/16
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false

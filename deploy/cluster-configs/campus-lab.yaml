@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: campus-lab
+servers: 1
+agents: 3
+network: dt-campus-lab
+subnet: 172.30.12.0/24
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+  k3s:
+    extraArgs:
+      - arg: --cluster-cidr=10.12.0.0/16
+        nodeFilters:
+          - server:*
+      - arg: --service-cidr=10.112.0.0/16
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false

@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: edge-microdc
+servers: 1
+agents: 6
+network: dt-edge-microdc
+subnet: 172.30.13.0/24
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+  k3s:
+    extraArgs:
+      - arg: --cluster-cidr=10.13.0.0/16
+        nodeFilters:
+          - server:*
+      - arg: --service-cidr=10.113.0.0/16
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false

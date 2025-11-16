@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: dc-core
+servers: 1
+agents: 5
+network: dt-dc-core
+subnet: 172.30.10.0/24
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+  k3s:
+    extraArgs:
+      - arg: --cluster-cidr=10.10.0.0/16
+        nodeFilters:
+          - server:*
+      - arg: --service-cidr=10.110.0.0/16
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: false
