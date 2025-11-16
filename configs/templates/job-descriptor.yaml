@@ -1,0 +1,185 @@
+# Generalized job descriptor aligned with schemas/job.schema.yaml
+# Replace sample values with your workload; keep enumerated options as-is when possible.
+version: "0.1.0"
+
+defaults:
+  qos: standard                     # best_effort | standard | high | critical
+  deadline_ms: 12000
+  max_retries: 1
+  replicate_short: true
+  prefer_same_site: false
+  prefer_same_region: true
+  allowed_formats: [native, wasm, cuda]   # native | wasm | cuda | npu | fpga | asic
+  disallowed_formats: []
+
+jobs:
+  - id: image-pipeline
+    name: "Image processing pipeline"
+    description: "Two-stage demo with latency awareness"
+
+    qos: high
+    deadline_ms: 15000
+    latency_budget_ms:
+      network_ms: 3000
+      compute_ms: 10000
+      queue_ms: 2000
+      risk_ms: 1000
+
+    datasets:
+      - name: camera-stream
+        size_mb: 50
+        resides_at: [edge-cam-01]
+        privacy: org                # public | org | confidential | secret
+
+    placement:
+      prefer_site: [edge, metro]
+      avoid_site: [untrusted-lab]
+      prefer_region: [us-east]
+      avoid_region: [us-west]
+      required_fabric: [ethernet]
+      min_trust: 0.7
+      min_arches: [amd64, arm64, riscv64]
+
+    fault_tolerance:
+      replication_factor: 1
+      checkpointing: stage_boundary   # none | stage_boundary | periodic
+      checkpoint_interval_ms: 0
+      max_retries: 2
+      backoff_ms: 500
+
+    policy:
+      optimize_for: latency          # latency | cost | energy | carbon | balanced
+      carbon_limit_g: 0
+      cost_limit_currency: 0
+      energy_limit_kwh: 0
+      format_preferences:
+        - stage_type: preprocess
+          order: [native, wasm, cuda]
+        - stage_type: infer
+          order: [cuda, npu, native]
+
+    labels:
+      experiment: demo
+      customer: internal
+
+    stages:
+      - id: preprocess
+        type: cv_filter
+        description: "Resize and normalize frames"
+        size_mb: 50
+        stream: true
+        batch_size: 8
+        needs_gpu: false
+        allowed_formats: [native, wasm]
+        disallowed_formats: [fpga]
+        resources:
+          cpu_cores: 2
+          ram_gb: 4
+          vram_gb: 0
+          hbm_gb: 0
+          scratch_gb: 10
+          min_arches: [amd64, arm64]
+          isa_required: [avx2, neon]   # avx2 | avx512 | sse4_2 | neon | sve | sve2 | sha | aes
+        accelerator:
+          prefer: none                 # gpu | npu | fpga | asic | none
+          dtype: [fp32]
+          min_tops: 0
+        slo:
+          deadline_ms: 5000
+          p99_ms: 2000
+        placement:
+          prefer_nodes: []
+          avoid_nodes: []
+          prefer_site: [edge]
+          avoid_site: []
+          prefer_region: [us-east]
+          avoid_region: []
+          required_fabric: [ethernet, wifi]
+          min_trust: 0.5
+          anti_affinity: []
+        fault_tolerance:
+          replicate: false
+          replicas: 1
+          retry:
+            max_retries: 1
+            backoff_ms: 500
+        io:
+          inputs:
+            - dataset: camera-stream
+              size_mb: 50
+          outputs:
+            - dataset: filtered
+              size_mb: 50
+        security:
+          min_privacy: org
+          allow_untrusted_nodes: false
+          require_tls_offload: false
+          require_ipsec: false
+        weights:
+          latency: 0.8
+          cost: 0.1
+          energy: 0.05
+          carbon: 0.05
+
+      - id: infer
+        type: mlp
+        description: "Run ML inference on filtered frames"
+        size_mb: 50
+        stream: true
+        batch_size: 8
+        needs_gpu: true
+        allowed_formats: [cuda, native]
+        disallowed_formats: [wasm]
+        resources:
+          cpu_cores: 4
+          ram_gb: 8
+          vram_gb: 16
+          hbm_gb: 0
+          scratch_gb: 20
+          min_arches: [amd64]
+          isa_required: [avx2]
+        accelerator:
+          prefer: gpu
+          dtype: [fp16, bf16]
+          min_tops: 50
+          min_compute_capability: "8.0"
+        slo:
+          deadline_ms: 8000
+          p99_ms: 3000
+        placement:
+          prefer_nodes: []
+          avoid_nodes: [gpu-drain-01]
+          prefer_site: [metro, cloud]
+          avoid_site: [edge-lowpower]
+          prefer_region: [us-east]
+          avoid_region: [eu-west]
+          required_fabric: [ethernet]
+          min_trust: 0.7
+          anti_affinity: [preprocess]
+        fault_tolerance:
+          replicate: true
+          replicas: 2
+          retry:
+            max_retries: 1
+            backoff_ms: 1000
+        io:
+          inputs:
+            - dataset: filtered
+              size_mb: 50
+          outputs:
+            - dataset: embeddings
+              size_mb: 10
+        security:
+          min_privacy: confidential
+          allow_untrusted_nodes: false
+          require_tls_offload: true
+          require_ipsec: false
+        weights:
+          latency: 0.6
+          cost: 0.15
+          energy: 0.1
+          carbon: 0.15
+
+    edges:
+      - from: preprocess
+        to: infer

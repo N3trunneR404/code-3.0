@@ -21,8 +21,14 @@ This repository hosts a digital-twin controller that plans workloads across a he
 
 ### Setup Multi-Cluster Environment
 ```bash
+# Validate local dependencies and resources
+./scripts/00_prerequisites_check.sh
+
 # Create 6-7 k3d clusters with metrics-server
-./deploy/multi-cluster-setup.sh
+./scripts/01_deploy_clusters.sh
+
+# Apply optional netem shaping + latency matrix for origin-aware policies
+./scripts/02_configure_network.sh
 
 # Or for single cluster (legacy mode)
 k3d cluster create fabric-dt --config deploy/k3d-cluster.yaml
@@ -63,6 +69,10 @@ curl -X POST http://127.0.0.1:8080/plan \
        "strategy": "greedy"
      }'
 ```
+
+### Descriptor Templates (YAML)
+- **Node descriptor template:** `configs/templates/node-descriptor.yaml` (covers `arch` = `amd64`/`arm64`/`riscv64`, CPU/memory tiers, accelerators, network, power, labels, health)
+- **Job descriptor template:** `configs/templates/job-descriptor.yaml` (covers end-to-end DAG, stage resources, format/arch gating, placement and SLOs)
 
 ### Verify Prediction Accuracy
 ```bash
