@@ -21,8 +21,14 @@ This repository hosts a digital-twin controller that plans workloads across a he
 
 ### Setup Multi-Cluster Environment
 ```bash
+# Validate local dependencies and resources
+./scripts/00_prerequisites_check.sh
+
 # Create 6-7 k3d clusters with metrics-server
-./deploy/multi-cluster-setup.sh
+./scripts/01_deploy_clusters.sh
+
+# Apply optional netem shaping + latency matrix for origin-aware policies
+./scripts/02_configure_network.sh
 
 # Or for single cluster (legacy mode)
 k3d cluster create fabric-dt --config deploy/k3d-cluster.yaml
