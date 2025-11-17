@@ -1,0 +1,129 @@
+# Generalized node descriptor aligned with schemas/node.schema.yaml
+# Replace sample values with your node's details. Enumerated options are shown inline.
+name: node-01
+class: server              # phone | sbc | laptop | workstation | gaming_rig | server | hpc
+role: worker               # worker | manager | gateway | storage | accelerator
+arch: amd64                # amd64 | arm64 | riscv64
+
+os:
+  distro: ubuntu
+  version: "22.04"
+  kernel: "5.15.0-92-generic"
+  container_runtime: docker  # docker | containerd | podman
+
+power:
+  supply_w: 750
+  poe: false
+  battery_present: false
+  tdp_total_w: 220
+
+cpu:
+  uarch: Zen4               # e.g., Zen4, Neoverse V1, GoldenCove
+  isa_ext: [avx2, avx512]   # avx2 | avx512 | sse4_2 | neon | sve | sve2 | sha | aes
+  cores: 32
+  base_ghz: 2.9
+  turbo_ghz: 4.4
+  tdp_w: 220
+  numa_nodes: 2
+
+memory:
+  ram_gb: 256
+  ecc: true
+  channels: 8
+  ddr_gen: ddr5             # ddr4 | ddr5 | lpddr4 | lpddr5
+
+storage:
+  type: nvme                # nvme | sata | zns | emmc | microsd
+  interface_gen: pcie4      # pcie3 | pcie4 | pcie5
+  size_gb: 4096
+  tbw_pct_used: 5
+  smart_health: 0.98
+  qd_cap: 64
+
+battery:
+  present: false
+
+# GPU/accelerator inventory (optional; keep "none" if not present)
+gpu:
+  type: real                # none | mock | real
+  vendor: nvidia            # nvidia | amd | apple | intel | none
+  model: H100
+  vram_gb: 80
+  cuda_cores: 16896
+  tensor_cores: 528
+  rt_cores: 0
+  compute_capability: "9.0"
+  hbm_gb: 80
+  hbm_bw_tbps: 3.35
+  nvlink: true
+  tdp_w: 350
+  accel_score: 1.0
+
+accelerators:
+  npu: none                 # none | coral_usb | ncs2 | ascend | other
+  npu_tops: 0
+  jetson_cuda: false
+  fpga_card: none           # none | alveo_u55c | agilex7 | other
+  fpga_hbm_gb: 0
+  fpga_net_gbps: 0
+  fpga_bitstream: ""
+  fpga_toolchain: ""
+  asic_kind: none           # none | tpu_v4 | inferentia2 | trainium | gaudi2 | other
+  asic_memory_gb: 0
+  asic_interconnect: none   # none | tpu_torus | neuronlink | rocev2
+  asic_dtypes: []           # fp32 | bf16 | fp16 | fp8 | int8 | int4
+
+dpu:
+  type: none                # none | bluefield3 | pensando_elba | intel_ipu_e2100 | other
+  ports_gbps: 0
+  protocol: tcp             # rocev2 | infiniband | tcp
+  offloads: []              # tls | ipsec | nvmeof | vxlan | geneve | compression | telemetry
+
+cxl:
+  type: none                # none | type3_memory
+  capacity_gb: 0
+  link_gtps: 0
+  added_ns_latency: 0
+
+io:
+  has_usb3: true
+  csi_cam: false
+  m2_socket: true
+  pcie_lanes: 64
+
+network:
+  fabric: ethernet          # ethernet | infiniband | wifi | lte | satellite
+  link: ethernet
+  speed_gbps: 100
+  base_latency_ms: 1.0
+  base_bandwidth_mbps: 100000
+  jitter_ms: 0.05
+  loss_pct: 0.01
+  ecn: true
+  mtu_bytes: 9000
+  rocev2: true
+  wifi_standard: null       # 802.11ac | 802.11ax | 802.11be
+  mlo: false
+
+formats_supported: [native, cuda, wasm]  # native | wasm | cuda | npu | fpga | asic
+
+labels:
+  zone: cloud-dc
+  rack: rack-a1
+  trust: "0.95"
+  wasm: "enabled"
+  owner: ops-team
+  # Additional arbitrary key/value labels may be added
+
+health:
+  ram_errors_million_hours: 0.0
+  last_week_crashes: 0
+  thermal_derate: 0.0
+  last_service_days: 45
+  temperature_c: 28
+  fan_fault: false
+
+data_locality:
+  - dataset: vision-cache
+    size_gb: 120
+    cold_to_hot_ms: 25
